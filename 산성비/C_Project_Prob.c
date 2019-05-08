@@ -340,7 +340,7 @@ int main(void)
 {
 	//변수 선언
 	RAINDROP_LIST raindropList;							//빗방울 목록
-	int idx;											//인덱스 저장에 사용
+	//int idx;											//인덱스 저장에 사용
 
 	INPUT_WORD input;									//키보드 입력 저장
 	char tempstring[MAX_LENGTH_OF_STRING + 1];			//문자열 임시 저장
@@ -380,38 +380,37 @@ int main(void)
 				pthread_cancel(thread);
 				break;
 			}
-			else if (!strcmp(input.word, "정지") && remainPause > 0)	//추가한 코드: 정지 입력시
+			//정지 입력시
+			else if (!strcmp(input.word, "정지") && remainPause > 0)
 			{
 				remainPause--;
 				statPrint();
 				stopFlag = TRUE;
 				stopTime = getClock();
 			}
-			else if (!strcmp(input.word, "폭탄") && remainBomb > 0)	//추가한 코드: 폭탄 입력시
+			//폭탄 입력시
+			else if (!strcmp(input.word, "폭탄") && remainBomb > 0)
 			{
-				int temp_cnt = raindropList.cntRaindrop;
-				for (int i = 0; i < temp_cnt; i++)	removeRaindrop(&raindropList, 0);
+				while(raindropList.cntRaindrop != 0)	removeRaindrop(&raindropList, 0);
 				remainBomb--;
 				statPrint();
 			}
-
-			if (getClock() - stopTime >= PAUSE_TIME)	stopFlag = FALSE;	//추가한 코드: 정지 끝
-
 			//빗방울중 입력된 단어 찾은후 처리
-			do
-			{
-				idx = findRaindropIdx(raindropList, input.word);
+			int idx = findRaindropIdx(raindropList, input.word);
+			do {
 				if (idx != -1)
 				{
 					scoreUpdate(raindropList,idx);	//점수 계산
-					speedUpdate();	//속도 계산
+					speedUpdate();					//속도 계산
 					removeRaindrop(&raindropList, idx);
 				}
 			} while (idx != -1);
+
 			input.flag = FALSE;
 		}
 
 		currentTime = getClock();
+		if (currentTime - stopTime >= PAUSE_TIME)	stopFlag = FALSE;	//추가한 코드: 정지 끝
 
 		if (stopFlag == FALSE)	//추가한 코드: 정지시가 아닐때만 빗방울생성 및 떨어짐
 		{
@@ -435,9 +434,8 @@ int main(void)
 						//추가한 코드 : 생명3개
 						removeRaindropFromList(&raindropList, i);
 						remainLife--;
-						statPrint();
-
 						if (remainLife < 0)	run = FALSE;
+						statPrint();
 						//////////
 					}
 					else
@@ -454,14 +452,11 @@ int main(void)
 				addRaindrop(&raindropList, wordList, currentTime);
 			}
 		}
-		if (run == TRUE)	statPrint();
+		statPrint();
 	}
 
-	/////////////////////////////////
-	//몰라도 상관없는 코드
+	//EXIT
 	pthread_join(thread, (void**)&joinStatus); //스레드가 끝날때까지 기다린다
-	/////////////////////////////////
-
 	for (int i = 0; i < wordList.cntWord; i++)	free(wordList.words[i]);
 	free(wordList.words);
 	for (int i = 0; i < raindropList.cntRaindrop; i++)	free(raindropList.raindrops[i].word);
