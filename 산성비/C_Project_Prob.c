@@ -353,6 +353,9 @@ int main(void)
 	clock_t currentTime;								//시간 저장
 	char run = TRUE;									//게임 반복 여부(종료되면 FALSE)
 
+	char stopFlag = FALSE;
+	clock_t stopTime = 0;
+
 	//초기화
 	srand((unsigned int)time(NULL));
 	setWordList(&wordList);								//파일에서 단어 목록 읽어옴
@@ -377,20 +380,23 @@ int main(void)
 				pthread_cancel(thread);
 				break;
 			}
-			else if (!strcmp(input.word, "정지"))
+			else if (!strcmp(input.word, "정지") && remainPause > 0)	//추가한 코드: 정지 입력시
 			{
+				remainPause--;
+				statPrint();
+				stopFlag = TRUE;
+				stopTime = getClock();
+			}
+			else if (!strcmp(input.word, "폭탄") && remainBomb > 0)	//추가한 코드: 폭탄 입력시
+			{
+				int temp_cnt = raindropList.cntRaindrop;
+				for (int i = 0; i < temp_cnt; i++)	removeRaindrop(&raindropList, 0);
+				remainBomb--;
+				statPrint();
+			}
 
-			}
-			else if (!strcmp(input.word, "폭탄"))
-			{
-				if (remainBomb > 0)
-				{
-					int temp_cnt = raindropList.cntRaindrop;
-					for (int i = 0; i < temp_cnt; i++)	removeRaindrop(&raindropList, 0);
-					remainBomb--;
-					statPrint();
-				}
-			}
+			if (getClock() - stopTime >= PAUSE_TIME)	stopFlag = FALSE;	//추가한 코드: 정지 끝
+
 			//빗방울중 입력된 단어 찾은후 처리
 			do
 			{
@@ -407,45 +413,47 @@ int main(void)
 
 		currentTime = getClock();
 
-		//빗방울 관리
-		for (int i = 0; i < raindropList.cntRaindrop; i++)
+		if (stopFlag == FALSE)	//추가한 코드: 정지시가 아닐때만 빗방울생성 및 떨어짐
 		{
-			if (raindropList.raindrops[i].lastUpdatedTime + (double)raindropList.raindrops[i].period / speed * 100 <= currentTime)
+			//빗방울 관리
+			for (int i = 0; i < raindropList.cntRaindrop; i++)
 			{
-				//빗방울이 한 줄 아래로 내려감
-				raindropList.raindrops[i].lastUpdatedTime = currentTime;
-				removeRaindropFromConsole(&raindropList, i);						//일치한 단어 화면에서 삭제
-				raindropList.raindrops[i].y++;
-				if (raindropList.raindrops[i].y >= MAX_Y)
+				if (raindropList.raindrops[i].lastUpdatedTime + (double)raindropList.raindrops[i].period / speed * 100 <= currentTime)
 				{
-					/////////////////////////////////
-					//몰라도 상관없는 코드
-					pthread_cancel(thread);
-					/////////////////////////////////
-					
-					//////////
-					//추가한 코드
-					removeRaindropFromList(&raindropList, i);
-					remainLife--;
-					statPrint();
-					
-					if(remainLife < 0)	run = FALSE;
-					//////////
-				}
-				else
-				{
-					printWord(raindropList.raindrops[i].x, raindropList.raindrops[i].y, raindropList.raindrops[i].word);
+					//빗방울이 한 줄 아래로 내려감
+					raindropList.raindrops[i].lastUpdatedTime = currentTime;
+					removeRaindropFromConsole(&raindropList, i);						//일치한 단어 화면에서 삭제
+					raindropList.raindrops[i].y++;
+					if (raindropList.raindrops[i].y >= MAX_Y)
+					{
+						/////////////////////////////////
+						//몰라도 상관없는 코드
+						pthread_cancel(thread);
+						/////////////////////////////////
+
+						//////////
+						//추가한 코드 : 생명3개
+						removeRaindropFromList(&raindropList, i);
+						remainLife--;
+						statPrint();
+
+						if (remainLife < 0)	run = FALSE;
+						//////////
+					}
+					else
+					{
+						printWord(raindropList.raindrops[i].x, raindropList.raindrops[i].y, raindropList.raindrops[i].word);
+					}
 				}
 			}
-		}
 
-		if (lastRaindropTime + (double)GENERATE_PERIOD / speed * 100 <= currentTime && raindropList.cntRaindrop < MAX_COUNT_OF_RAINDROPS)
-		{
-			//새로운 빗방울 추가
-			lastRaindropTime = currentTime;
-			addRaindrop(&raindropList, wordList, currentTime);
+			if (lastRaindropTime + (double)GENERATE_PERIOD / speed * 100 <= currentTime && raindropList.cntRaindrop < MAX_COUNT_OF_RAINDROPS)
+			{
+				//새로운 빗방울 추가
+				lastRaindropTime = currentTime;
+				addRaindrop(&raindropList, wordList, currentTime);
+			}
 		}
-
 		if (run == TRUE)	statPrint();
 	}
 

@@ -1,3 +1,3 @@
 ﻿  C_Project_Prob.c
-c:\users\rphjb\source\repos\산성비\산성비\c_project_prob.c(345): warning C4101: 'tempstring' :참조되지 않은 지역 변수입니다.
-  산성비.vcxproj -> C:\Users\rphjb\source\repos\산성비\Debug\산성비.exe
+c:\dev\산성비\산성비\c_project_prob.c(346): warning C4101: 'tempstring' :참조되지 않은 지역 변수입니다.
+  산성비.vcxproj -> C:\dev\산성비\Debug\산성비.exe
