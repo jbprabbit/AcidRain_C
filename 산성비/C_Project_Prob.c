@@ -396,15 +396,16 @@ int main(void)
 				statPrint();
 			}
 			//빗방울중 입력된 단어 찾은후 처리
-			int idx = findRaindropIdx(raindropList, input.word);
+			int index;
 			do {
-				if (idx != -1)
+				index = findRaindropIdx(raindropList, input.word);
+				if (index != -1)
 				{
-					scoreUpdate(raindropList,idx);	//점수 계산
+					scoreUpdate(raindropList,index);	//점수 계산
 					speedUpdate();					//속도 계산
-					removeRaindrop(&raindropList, idx);
+					removeRaindrop(&raindropList, index);
 				}
-			} while (idx != -1);
+			} while (index != -1);
 
 			input.flag = FALSE;
 		}
