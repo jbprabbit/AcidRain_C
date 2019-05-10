@@ -1,4 +1,3 @@
-1000
 a
 ability
 able

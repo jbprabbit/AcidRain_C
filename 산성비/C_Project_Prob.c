@@ -122,11 +122,14 @@ void printWord(int x, int y, char* word)
 	wait(2);
 }
 
+#define VERSION 1
+
 #ifdef _WIN32
 ///////////////////////////////////////////////////////////////////////// 종료 확인
 //define something for Windows (32-bit and 64-bit, this part is common)
 
 // Version 1
+#if VERSION == 1
 typedef struct
 {
 	char temp[MAX_LENGTH_OF_STRING + 1][2];
@@ -139,12 +142,14 @@ void* wordScan(void* data)
 	INPUT_WORD *input = (INPUT_WORD*)data;
 	char temp;
 	int cnt;
+
 	input->length = 0;
 	while (TRUE)
 	{
 		if (!input->flag)
 		{
 			temp = getch();
+
 			if (temp == 13)	//Enter 입력
 			{
 				cnt = 0;
@@ -182,8 +187,9 @@ void* wordScan(void* data)
 	gotoxy(0, MAX_Y + 2);
 	return NULL;
 }
+#elif VERSION == 2
 // Version 2
-/*
+
 typedef struct {
 	char temp[MAX_LENGTH_OF_STRING + 1][2];
 	char word[MAX_LENGTH_OF_STRING + 1];
@@ -237,9 +243,8 @@ void*wordScan(void* data) {
 	gotoxy(0, MAX_Y + 2);
 	return NULL;
 }
-*/
+#elif VERSION == 3
 // Version 3
-/*
 typedef struct {
 	char word[MAX_LENGTH_OF_STRING + 1];
 	char flag;
@@ -255,7 +260,7 @@ void*wordScan(void* data) {
 	gotoxy(0, MAX_Y + 2);
 	return NULL;
 }
-*/
+#endif
 
 #elif __linux__
 // linux
@@ -426,11 +431,7 @@ int main(void)
 					raindropList.raindrops[i].y++;
 					if (raindropList.raindrops[i].y >= MAX_Y)
 					{
-						/////////////////////////////////
-						//몰라도 상관없는 코드
 						pthread_cancel(thread);
-						/////////////////////////////////
-
 						//////////
 						//추가한 코드 : 생명3개
 						removeRaindropFromList(&raindropList, i);
@@ -446,7 +447,7 @@ int main(void)
 				}
 			}
 
-			if (lastRaindropTime + (double)GENERATE_PERIOD / speed * 100 <= currentTime && raindropList.cntRaindrop < MAX_COUNT_OF_RAINDROPS)
+			if ((double)GENERATE_PERIOD / speed * 100 <= (currentTime - lastRaindropTime) && raindropList.cntRaindrop < MAX_COUNT_OF_RAINDROPS)
 			{
 				//새로운 빗방울 추가
 				lastRaindropTime = currentTime;
@@ -470,6 +471,8 @@ int main(void)
 
 void setWordList(WORD_LIST *wordList)
 {
+	//Original Code
+	/*
 	FILE *fp;
 	int tempInt;
 	char tempString[MAX_LENGTH_OF_STRING + 1];
@@ -484,6 +487,30 @@ void setWordList(WORD_LIST *wordList)
 		wordList->words[i] = (char*)malloc(sizeof(char) * tempInt + 1);
 		strcpy(wordList->words[i], tempString);
 	}
+	fclose(fp);
+	return;
+	 */
+
+	//New Code (cntWord dynamic)
+	FILE *fp = fopen(FILE_NAME, "r");
+
+	int tempLen;
+	char tempString[MAX_LENGTH_OF_STRING + 1];
+
+	//init
+	wordList->cntWord = 0;
+	wordList->words = NULL;
+
+	while (fscanf(fp, "%s", tempString) != EOF)
+	{
+		tempLen = strlen(tempString);
+		wordList->words = (char **)realloc(wordList->words, sizeof(char *) * (wordList->cntWord + 1));
+		wordList->words[wordList->cntWord] = NULL;
+		wordList->words[wordList->cntWord] = (char *)realloc(wordList->words[wordList->cntWord], sizeof(char) * tempLen + 1);
+		strcpy(wordList->words[wordList->cntWord], tempString);
+		wordList->cntWord++;
+	}
+
 	fclose(fp);
 	return;
 }
