@@ -7,6 +7,8 @@
 #include <string.h>
 #include <pthread.h>
 
+#include "const.h"
+
 #ifdef _WIN32
 //define something for Windows (32-bit and 64-bit, this part is common)
 #include <Windows.h>
@@ -89,29 +91,6 @@ clock_t getClock() {
 	return clock() / 10;
 }
 #endif
-
-#define MAX_LENGTH_OF_STRING 100
-#define SCORE_X 30
-#define SPEED_X 50
-#define DESCRIPTION_Y 1
-#define REMAIN_SPECIAL_Y 2
-
-#define TRUE 1
-#define FALSE 0
-#define MAX_COUNT_OF_RAINDROPS 20								//빗방울 최대 개수
-#define GENERATE_PERIOD 2000									//빗방울 생성 주기
-#define DROP_PERIOD_MIN 500										//빗방울 떨어지는 주기 최소
-#define DROP_PERIOD_MAX 700										//빗방울 떨어지는 주기 최대
-#define FILE_NAME "word.txt"									//단어가 저장되어 있는 파일 이름(한글 단어)
-//#define FILE_NAME "english.txt"								//단어가 저장되어 있는 파일 이름(영어 단어)
-#define MAX_X 70												//빗방울 X 좌표 최대 값
-#define MAX_Y 25												//빗방울 Y 좌표 최대 값
-#define MIN_Y 5													//빗방울 Y 좌표 최소 값
-
-#define PAUSE 3													//"정지"단어 가능 횟수 초기 값
-#define BOMB 3													//"폭탄"단어 가능 횟수 초기 값
-#define PAUSE_TIME 3000											//"정지"단어 입력 시 정지 시간(ms)
-#define LIFE 3													//체력 초기 값
 
 //입력받은 x, y 좌표에 입력받은 word 출력
 void printWord(int x, int y, char* word)
@@ -299,7 +278,6 @@ void*wordScan(void* data) {
 #endif
 /////////////////////////////////
 
-///////////////////////////////// 해석이 필요한 코드
 typedef struct {
 	char* word;												//단어 저장
 	int x, y;												//단어의 첫 글자의 좌표
@@ -316,6 +294,12 @@ typedef struct {
 	int cntWord;											//단어가 저장되어 있는 개수
 }WORD_LIST;													//단어의 목록을 저장할 구조체
 
+typedef struct {
+	int life;
+	int pause;
+	int bomb;
+}REMAIN;
+
 void setWordList(WORD_LIST * wordList);													//단어가 저장된 파일을 불러와서 WORD_LIST에 단어의 목록을 저장하는 함수
 
 void addRaindrop(RAINDROP_LIST *raindropList, WORD_LIST wordList, clock_t time);		//WORD_LIST에 저장된 단어중 임의의 단어로 새로운 빗방울을 만드는 함수
@@ -329,31 +313,35 @@ int calculateScore(RAINDROP raindrop, int speed);										//추가될 점수 계산
 
 void scoreUpdate(RAINDROP_LIST raindropList, int idx);
 void speedUpdate(void);
-void statPrint(void);
+void statPrint(REMAIN remain);
 void scorePrint(void);
 void speedPrint(void);
-void printAll(void);
+void printAll(REMAIN remain);
 
-int remainPause = PAUSE;							//남은 정지 횟수
-int remainBomb = BOMB;								//남은 폭탄 횟수
-int remainLife = LIFE;								//남은 체력
+void gameplay(void);
 
 int score = 0;										//점수
 int speed = 100;									//%단위, 100에서 시작하여 시간이 지날수록 speed 상승
 
 int main(void)
 {
+	gameplay();
+
+	return 0;
+}
+
+void gameplay(void)
+{
 	//변수 선언
 	RAINDROP_LIST raindropList;							//빗방울 목록
 	//int idx;											//인덱스 저장에 사용
 
 	INPUT_WORD input;									//키보드 입력 저장
-	char tempstring[MAX_LENGTH_OF_STRING + 1];			//문자열 임시 저장
 	WORD_LIST wordList;									//파일에 있는 단어 목록 저장
 
 	pthread_t thread;									//키보드 입력을 위한 쓰레드
 	int joinStatus;										//쓰레드 상태
-	
+
 	clock_t lastRaindropTime = 0;						//가장 최근에 빗방울이 생성된 시간
 	clock_t currentTime;								//시간 저장
 	char run = TRUE;									//게임 반복 여부(종료되면 FALSE)
@@ -363,12 +351,14 @@ int main(void)
 
 	//초기화
 	srand((unsigned int)time(NULL));
+
+	REMAIN remain = {LIFE, PAUSE, BOMB};
 	setWordList(&wordList);								//파일에서 단어 목록 읽어옴
 	raindropList.cntRaindrop = 0;
 	input.flag = FALSE;
 
 	/*****초기 화면 출력*****/
-	printAll();
+	printAll(remain);
 
 	/*****사용자 입력 관리 쓰레드 시작*****/
 	pthread_create(&thread, NULL, wordScan, (void*)&input);		//스레드를 생성하고 작동시킨다 (사용자 입력 관리 쓰레드)
@@ -386,27 +376,28 @@ int main(void)
 				break;
 			}
 			//정지 입력시
-			else if (!strcmp(input.word, "정지") && remainPause > 0)
+			else if (!strcmp(input.word, "정지") && remain.pause > 0)
 			{
-				remainPause--;
-				statPrint();
+				remain.pause--;
+				statPrint(remain);
 				stopFlag = TRUE;
 				stopTime = getClock();
 			}
 			//폭탄 입력시
-			else if (!strcmp(input.word, "폭탄") && remainBomb > 0)
+			else if (!strcmp(input.word, "폭탄") && remain.bomb > 0)
 			{
-				while(raindropList.cntRaindrop != 0)	removeRaindrop(&raindropList, 0);
-				remainBomb--;
-				statPrint();
+				while (raindropList.cntRaindrop != 0)	removeRaindrop(&raindropList, 0);
+				remain.bomb--;
+				statPrint(remain);
 			}
+
 			//빗방울중 입력된 단어 찾은후 처리
 			int index;
 			do {
 				index = findRaindropIdx(raindropList, input.word);
 				if (index != -1)
 				{
-					scoreUpdate(raindropList,index);	//점수 계산
+					scoreUpdate(raindropList, index);	//점수 계산
 					speedUpdate();					//속도 계산
 					removeRaindrop(&raindropList, index);
 				}
@@ -435,9 +426,9 @@ int main(void)
 						//////////
 						//추가한 코드 : 생명3개
 						removeRaindropFromList(&raindropList, i);
-						remainLife--;
-						if (remainLife < 0)	run = FALSE;
-						statPrint();
+						remain.life--;
+						if (remain.life == 0)	run = FALSE;
+						statPrint(remain);
 						//////////
 					}
 					else
@@ -454,7 +445,7 @@ int main(void)
 				addRaindrop(&raindropList, wordList, currentTime);
 			}
 		}
-		statPrint();
+		statPrint(remain);
 	}
 
 	//EXIT
@@ -466,9 +457,10 @@ int main(void)
 	printWord(0, MAX_Y + 1, "종료합니다.");
 	gotoxy(0, MAX_Y + 2);
 
-	return 0;
+	return;
 }
 
+//추가구현: 단어 추가위해 txt파일 첫줄 숫자 지움
 void setWordList(WORD_LIST *wordList)
 {
 	//Original Code
@@ -547,29 +539,27 @@ void removeRaindropFromConsole(RAINDROP_LIST *raindropList, int idx)
 {
 	char tempstring[MAX_LENGTH_OF_STRING + 1];
 
-	/////////////////////////////////
-	//몰라도 상관없는 코드
-	//콘솔에서 단어 지움
 	for (int i = 0; i < raindropList->raindrops[idx].length; i++)	tempstring[i] = ' ';
 	tempstring[raindropList->raindrops[idx].length] = '\0';
 	printWord(raindropList->raindrops[idx].x, raindropList->raindrops[idx].y, tempstring);
-	/////////////////////////////////
 }
 void removeRaindropFromList(RAINDROP_LIST *raindropList, int idx)
 {
 	free(raindropList->raindrops[idx].word);
 	for (int i = idx; i < raindropList->cntRaindrop - 1; i++)
 	{
-		raindropList->raindrops[i].lastUpdatedTime = raindropList->raindrops[i + 1].lastUpdatedTime;
-		raindropList->raindrops[i].length = raindropList->raindrops[i + 1].length;
-		raindropList->raindrops[i].period = raindropList->raindrops[i + 1].period;
-		raindropList->raindrops[i].x = raindropList->raindrops[i + 1].x;
-		raindropList->raindrops[i].y = raindropList->raindrops[i + 1].y;
-		raindropList->raindrops[i].word = raindropList->raindrops[i + 1].word;
+		raindropList->raindrops[i] = raindropList->raindrops[i + 1];
+		//Original Code
+		//raindropList->raindrops[i].lastUpdatedTime = raindropList->raindrops[i + 1].lastUpdatedTime;
+		//raindropList->raindrops[i].length = raindropList->raindrops[i + 1].length;
+		//raindropList->raindrops[i].period = raindropList->raindrops[i + 1].period;
+		//raindropList->raindrops[i].x = raindropList->raindrops[i + 1].x;
+		//raindropList->raindrops[i].y = raindropList->raindrops[i + 1].y;
+		//raindropList->raindrops[i].word = raindropList->raindrops[i + 1].word;
+
 	}
 	raindropList->cntRaindrop--;
 }
-
 
 int calculateScore(RAINDROP raindrop, int speed)
 {
@@ -586,11 +576,11 @@ void speedUpdate(void)
 	speed = 100 + score / 100;
 	speedPrint();
 }
-void statPrint(void)
+void statPrint(REMAIN remain)
 {
 	char tempstring[MAX_LENGTH_OF_STRING + 1];			//문자열 임시 저장
 	//stat 출력
-	sprintf(tempstring, "남은 체력: %2d 남은 정지 횟수: %2d 남은 폭탄 횟수: %2d", remainLife, remainPause, remainBomb);
+	sprintf(tempstring, "남은 체력: %2d 남은 정지 횟수: %2d 남은 폭탄 횟수: %2d", remain.life, remain.pause, remain.bomb);
 	printWord(0, REMAIN_SPECIAL_Y, tempstring);
 }
 void scorePrint(void)
@@ -607,11 +597,11 @@ void speedPrint(void)
 	sprintf(tempstring, "SPEED: %5d%%", speed);
 	printWord(SPEED_X, DESCRIPTION_Y, tempstring);
 }
-void printAll(void)
+void printAll(REMAIN remain)
 {
 	clear();
 
-	statPrint();
+	statPrint(remain);
 	scorePrint();
 	speedPrint();
 
