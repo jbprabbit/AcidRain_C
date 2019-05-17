@@ -104,10 +104,7 @@ void printWord(int x, int y, char* word)
 #define VERSION 1
 
 #ifdef _WIN32
-///////////////////////////////////////////////////////////////////////// 종료 확인
-//define something for Windows (32-bit and 64-bit, this part is common)
 
-// Version 1
 #if VERSION == 1
 typedef struct
 {
