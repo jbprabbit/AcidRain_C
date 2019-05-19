@@ -22,6 +22,7 @@
 
 #define KOR_FILE "word.txt"
 #define ENG_FILE "english.txt"
+#define RANK_FILE "rank.txt"
 
 #define FILE_NAME "word.txt"									//단어가 저장되어 있는 파일 이름(한글 단어)
 //#define FILE_NAME "english.txt"								//단어가 저장되어 있는 파일 이름(영어 단어)

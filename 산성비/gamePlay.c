@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string.h>
 #include <pthread.h>
+#include <Windows.h>
 
 #include "const.h"
 #include "basicFunc.h"
@@ -13,6 +14,8 @@
 #include "rainDropMng.h"
 #include "printer.h"
 #include "gamePlay.h"
+
+char run = TRUE;									//게임 반복 여부(종료되면 FALSE)
 
 #define VERSION 0
 #ifdef _WIN32
@@ -149,16 +152,65 @@ void*wordScan(void* data) {
 }
 #elif VERSION == 0
 #include <process.h>
-typedef struct {
+typedef struct
+{
+	char temp[MAX_LENGTH_OF_STRING + 1][2];
 	char word[MAX_LENGTH_OF_STRING + 1];
+	int length;
 	char flag;
 }INPUT_WORD;
-void *wordScan(void *data)
+unsigned __stdcall wordScan(void* data)
 {
+	INPUT_WORD *input = (INPUT_WORD*)data;
+	char temp;
+	int cnt;
+
+	input->length = 0;
 	while (TRUE)
 	{
-
+		if (!input->flag && run != FALSE)
+		{
+			temp = getch();
+			if (temp == 13)	//Enter 입력
+			{
+				cnt = 0;
+				for (int i = 0; i < input->length; i++)
+				{
+					input->word[cnt++] = input->temp[i][0];
+					if (input->temp[i][1] != 0)	input->word[cnt++] = input->temp[i][1];
+				}
+				input->word[cnt] = '\0';
+				input->length = 0;
+				input->flag = TRUE;
+}
+			else if (temp == 8)	//backspace 입력
+			{
+				if (input->length > 0)	input->length--;
+			}
+			else
+			{
+				if (temp > 0)
+				{
+					input->temp[input->length][0] = temp;
+					input->temp[input->length][1] = 0;
+					input->length++;
+				}
+				else
+				{
+					input->temp[input->length][0] = temp;
+					temp = getch();
+					input->temp[input->length][1] = temp;
+					input->length++;
+				}
+			}
+		}
 	}
+	gotoxy(0, MAX_Y + 2);
+	return NULL;
+}
+void wordScanEnd(INPUT_WORD *data)
+{
+	data = NULL;
 }
 #endif
 
@@ -198,6 +250,44 @@ void*wordScan(void* data) {
 }
 #endif
 
+extern void printOuterLine(void);
+
+
+void gameend(STATUS stat)
+{
+	system("cls");
+	printOuterLine();
+	char tempString[MAX_LENGTH_OF_STRING + 1];
+	printWord(MID_X_WOR, MID_Y, "GAME OVER!");
+
+	sprintf(tempString, "SCORE : %d", stat.score);
+	printWord(MID_X_WOR, MID_Y + 1, tempString);
+
+	sprintf(tempString, "SPEED : %d%%", stat.speed);
+	printWord(MID_X_WOR, MID_Y + 2, tempString);
+
+	FILE *rank = fopen(RANK_FILE, "a");
+	FILE *read = fopen(RANK_FILE, "r");
+	char nameStr[MAX_LENGTH_OF_STRING + 1];
+
+	gotoxy(MID_X_WOR, MID_Y + 4);
+	printf("input name> ");
+	scanf("%s", nameStr);
+
+	int cnt;
+	char name[MAX_LENGTH_OF_STRING + 1];
+	int score, speed;
+
+	while (fscanf(read, "%d %s %d %d", &cnt, name, &score, &speed) != EOF);
+	
+	//sprintf(tempString, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
+	fprintf(rank, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
+	//fputs(tempString, rank);
+
+	gotoxy(MID_X_WOR-11, MAX_Y - 2);
+	system("pause");
+}
+
 void gameplay(void)
 {
 	//변수 선언
@@ -211,7 +301,7 @@ void gameplay(void)
 	clock_t lastRaindropTime = 0;						//가장 최근에 빗방울이 생성된 시간
 	clock_t currentTime;								//시간 저장
 
-	char run = TRUE;									//게임 반복 여부(종료되면 FALSE)
+	
 	char stopFlag = FALSE;
 	clock_t stopTime = 0;
 
@@ -231,8 +321,10 @@ void gameplay(void)
 	pthread_create(&thread, NULL, wordScan, (void*)&input);		//스레드를 생성하고 작동시킨다 (사용자 입력 관리 쓰레드)
 	pthread_detach(thread);										//쓰레드 실행
 #else	//threadPrgm
-
+	_beginthreadex(NULL, 0, wordScan, (void *)&input, 0, NULL);
 #endif
+
+	run = TRUE;
 
 	while (run)
 	{
@@ -246,8 +338,9 @@ void gameplay(void)
 				pthread_cancel(thread);
 				//pthread_exit(NULL);
 #else	//threadPrgm
-
+				//_endthreadex(0);
 #endif
+				run = FALSE;
 				break;
 			}
 			//정지 입력시
@@ -300,7 +393,7 @@ void gameplay(void)
 #if VERSION != 0
 						pthread_cancel(thread);
 #else	//threadPrgm
-
+						//_endthreadex(0);
 #endif
 						//////////
 						//추가한 코드 : 생명3개
@@ -308,6 +401,7 @@ void gameplay(void)
 						remain.life--;
 						if (remain.life == 0)	run = FALSE;
 						statPrint(remain);
+
 						//////////
 					}
 					else
@@ -333,13 +427,15 @@ void gameplay(void)
 	pthread_cancel(thread);
 	//pthread_exit(NULL);
 #else	//threadPrgm
-
+	//_endthreadex(0);
 #endif
+
+	gameend(stat);
+
 	for (int i = 0; i < wordList.cntWord; i++)	free(wordList.words[i]);
 	free(wordList.words);
 	for (int i = 0; i < raindropList.cntRaindrop; i++)	free(raindropList.raindrops[i].word);
-
-	printWord(0, MAX_Y + 1, "종료합니다.");
+	
 	gotoxy(0, MAX_Y + 2);
 
 	return;

@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="english.txt" />
+    <Text Include="rank.txt" />
     <Text Include="word.txt" />
   </ItemGroup>
   <ItemGroup>

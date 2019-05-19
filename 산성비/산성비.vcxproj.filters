@@ -17,6 +17,7 @@
   <ItemGroup>
     <Text Include="english.txt" />
     <Text Include="word.txt" />
+    <Text Include="rank.txt" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="pthreadVCE2.lib">
