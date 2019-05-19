@@ -155,13 +155,21 @@
     <None Include="pthreadVSE2.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="basicFunc.h" />
     <ClInclude Include="const.h" />
+    <ClInclude Include="gamePlay.h" />
     <ClInclude Include="include\pthread.h" />
     <ClInclude Include="include\sched.h" />
+    <ClInclude Include="printer.h" />
+    <ClInclude Include="printWord.h" />
     <ClInclude Include="rainDropMng.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C_Project_Prob.c" />
+    <ClCompile Include="basicFunc.c" />
+    <ClCompile Include="gamePlay.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="printer.c" />
+    <ClCompile Include="printWord.c" />
     <ClCompile Include="rainDropMng.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

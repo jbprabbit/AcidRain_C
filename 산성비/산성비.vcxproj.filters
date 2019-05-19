@@ -53,12 +53,36 @@
     <ClInclude Include="rainDropMng.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="basicFunc.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="printWord.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="gamePlay.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="printer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C_Project_Prob.c">
+    <ClCompile Include="rainDropMng.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="rainDropMng.c">
+    <ClCompile Include="printWord.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="basicFunc.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="gamePlay.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="printer.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
