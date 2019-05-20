@@ -113,10 +113,9 @@ int main (void)
 
 			while (fscanf(rank, "%d %s %d %d", &rankviewer.cnt, rankviewer.name, &rankviewer.score, &rankviewer.speed) != EOF)
 			{
-				gotoxy(30, 7 + rankCounter);
+				gotoxy(30, 5 + rankCounter);
 				rankCounter++;
-				if(rankviewer.cnt != 0)
-				printf("%3d %10s %6d¡° %5d%%\n", rankviewer.cnt, rankviewer.name, rankviewer.score, rankviewer.speed);
+				printf("%3d %10s %6d¡° %5d%%", rankviewer.cnt, rankviewer.name, rankviewer.score, rankviewer.speed);
 			}
 			fclose(rank);
 			

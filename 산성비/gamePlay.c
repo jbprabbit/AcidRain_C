@@ -208,10 +208,6 @@ unsigned __stdcall wordScan(void* data)
 	gotoxy(0, MAX_Y + 2);
 	return NULL;
 }
-void wordScanEnd(INPUT_WORD *data)
-{
-	data = NULL;
-}
 #endif
 
 #elif __linux__
@@ -272,7 +268,7 @@ void gameend(STATUS stat)
 
 	gotoxy(MID_X_WOR, MID_Y + 4);
 	printf("input name> ");
-	scanf("%s", nameStr);
+	gets_s(nameStr, MAX_LENGTH_OF_STRING + 1);
 
 	int cnt;
 	char name[MAX_LENGTH_OF_STRING + 1];
@@ -281,9 +277,7 @@ void gameend(STATUS stat)
 	cnt = 0;
 	while (fscanf(read, "%d %s %d %d", &cnt, name, &score, &speed) != EOF);
 	
-	//sprintf(tempString, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
-	fprintf(rank, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
-	//fputs(tempString, rank);
+	fprintf(rank, "%d %s %d %d\n", cnt + 1, nameStr, stat.score, stat.speed);
 
 	fclose(rank);
 	fclose(read);
