@@ -269,6 +269,7 @@ void gameend(STATUS stat)
 	gotoxy(MID_X_WOR, MID_Y + 4);
 	printf("input name> ");
 	gets_s(nameStr, MAX_LENGTH_OF_STRING + 1);
+	rewind(stdin);
 
 	int cnt;
 	char name[MAX_LENGTH_OF_STRING + 1];

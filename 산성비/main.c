@@ -17,6 +17,15 @@ void printMainMenu(void);
 void printWordAddMenu(void);
 void printLangSelMenu(void);
 
+void rankSort(void)
+{
+	FILE *rank = fopen(RANK_FILE, "a");
+
+
+
+	fclose(rank);
+}
+
 int main (void)
 {
 	strcpy(file_name, KOR_FILE);
@@ -109,8 +118,8 @@ int main (void)
 
 			printWord(MID_X, 3, "RANK");
 
+			rankSort();
 			rank = fopen(RANK_FILE, "r");
-
 			while (fscanf(rank, "%d %s %d %d", &rankviewer.cnt, rankviewer.name, &rankviewer.score, &rankviewer.speed) != EOF)
 			{
 				gotoxy(30, 5 + rankCounter);
