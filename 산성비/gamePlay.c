@@ -277,12 +277,16 @@ void gameend(STATUS stat)
 	int cnt;
 	char name[MAX_LENGTH_OF_STRING + 1];
 	int score, speed;
-
+	
+	cnt = 0;
 	while (fscanf(read, "%d %s %d %d", &cnt, name, &score, &speed) != EOF);
 	
 	//sprintf(tempString, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
 	fprintf(rank, "\n%d %s %d %d", cnt + 1, nameStr, stat.score, stat.speed);
 	//fputs(tempString, rank);
+
+	fclose(rank);
+	fclose(read);
 
 	gotoxy(MID_X_WOR-11, MAX_Y - 2);
 	system("pause");

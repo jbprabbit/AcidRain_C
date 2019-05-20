@@ -1,2 +1,7 @@
-﻿  main.c
+﻿  gamePlay.c
+c:\dev\산성비\산성비\gameplay.c(209): warning C4047: 'return': 'unsigned int'의 간접 참조 수준이 'void *'과(와) 다릅니다.
+c:\dev\산성비\산성비\gameplay.c(302): warning C4101: 'thread' :참조되지 않은 지역 변수입니다.
+c:\dev\산성비\산성비\gameplay.c(303): warning C4101: 'joinStatus' :참조되지 않은 지역 변수입니다.
+  main.c
+  코드를 생성하고 있습니다...
   산성비.vcxproj -> C:\dev\산성비\Debug\산성비.exe

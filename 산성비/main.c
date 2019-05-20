@@ -22,9 +22,7 @@ int main (void)
 	strcpy(file_name, KOR_FILE);
 	strcpy(lang_code, "kor");
 
-	FILE *chk = fopen(file_name, "r");
-	FILE *add = fopen(file_name, "a+");
-	FILE *rank = fopen(RANK_FILE, "a+");
+	FILE *chk, *add, *rank;
 
 	typedef struct rank_view
 	{
@@ -66,9 +64,6 @@ int main (void)
 			add = fopen(file_name, "a");
 			chk = fopen(file_name, "r");
 
-			gotoxy(MID_X_WOR - 15, MID_Y - 3);
-			printf("(버그로 인해 프로그램 재시작시 적용됩니다ㅜ) ");
-
 			gotoxy(MID_X_WOR - 10, MID_Y - 2);
 			printf("(그냥 Enter 입력시 뒤로감) ");
 
@@ -96,7 +91,6 @@ int main (void)
 					{
 						strcat(newString, tempString);
 						fputs(newString, add);
-						//add = fopen(file_name, "a");
 						gotoxy(MID_X_WOR - 5, MID_Y + 2);
 						printf("input success\n");
 						gotoxy(MID_X_WOR - 11, MAX_Y - 2);
@@ -104,16 +98,18 @@ int main (void)
 					}
 				}
 			}
+			fclose(add);
+			fclose(chk);
+
 			break;
 		case 3:
 			//랭킹
 			system("cls");
 			printOuterLine();
 
-			gotoxy(MID_X_WOR - 15, 1);
-			printf("(버그로 인해 프로그램 재시작시 업데이트됩니다ㅜ) ");
-
 			printWord(MID_X, 3, "RANK");
+
+			rank = fopen(RANK_FILE, "r");
 
 			while (fscanf(rank, "%d %s %d %d", &rankviewer.cnt, rankviewer.name, &rankviewer.score, &rankviewer.speed) != EOF)
 			{
@@ -122,6 +118,8 @@ int main (void)
 				if(rankviewer.cnt != 0)
 				printf("%3d %10s %6d점 %5d%%\n", rankviewer.cnt, rankviewer.name, rankviewer.score, rankviewer.speed);
 			}
+			fclose(rank);
+			
 			gotoxy(MID_X_WOR - 11, MAX_Y - 2);
 			system("pause");
 			break;
